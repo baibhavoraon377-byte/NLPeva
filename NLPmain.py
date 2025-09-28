@@ -1,5 +1,5 @@
 # ============================================
-# 🎯 NLP Analysis Suite
+# 🎯 Professional NLP Analysis Suite - Stable Version
 # ============================================
 
 import streamlit as st
@@ -20,8 +20,6 @@ from sklearn.preprocessing import LabelEncoder
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 # ============================
 # Page Configuration
@@ -54,7 +52,6 @@ st.markdown("""
     /* Main container */
     .main-container {
         background-color: var(--background);
-        padding: 2rem;
     }
     
     /* Cards */
@@ -127,20 +124,6 @@ st.markdown("""
     .stButton button:hover {
         background: var(--primary-dark);
         transform: translateY(-1px);
-    }
-    
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        background-color: var(--card);
-        border-radius: 8px 8px 0px 0px;
-        gap: 1rem;
-        padding: 1rem 2rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -292,17 +275,91 @@ class ProfessionalModelTrainer:
             progress_bar.progress((i + 1) / len(self.models))
         
         progress_bar.empty()
-        status_text.text("Training completed!")
+        status_text.text("✅ Training completed!")
         
         return results, le
 
 # ============================
-# Interactive Visualizations
+# Professional Visualizations
 # ============================
-class InteractiveVisualizer:
+class ProfessionalVisualizer:
     @staticmethod
-    def create_performance_radar(results):
-        """Create interactive radar chart"""
+    def create_performance_comparison(results):
+        """Create professional performance comparison chart"""
+        models = []
+        metrics_data = {
+            'Accuracy': [], 'Precision': [], 'Recall': [], 'F1-Score': []
+        }
+        
+        for model_name, result in results.items():
+            if 'error' not in result:
+                models.append(model_name)
+                metrics_data['Accuracy'].append(result['accuracy'])
+                metrics_data['Precision'].append(result['precision'])
+                metrics_data['Recall'].append(result['recall'])
+                metrics_data['F1-Score'].append(result['f1_score'])
+        
+        # Set style
+        plt.style.use('default')
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
+        fig.suptitle('Model Performance Comparison', fontsize=16, fontweight='bold', color='#1e293b')
+        
+        colors = ['#2563eb', '#06d6a0', '#ffd166', '#ef476f']
+        
+        # Accuracy
+        bars1 = ax1.bar(models, metrics_data['Accuracy'], color=colors, alpha=0.8, edgecolor='white', linewidth=2)
+        ax1.set_title('Accuracy', fontweight='bold', color='#1e293b')
+        ax1.set_ylabel('Score', fontweight='bold')
+        ax1.tick_params(axis='x', rotation=45)
+        ax1.grid(True, alpha=0.3, axis='y')
+        
+        for bar in bars1:
+            height = bar.get_height()
+            ax1.text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                    f'{height:.3f}', ha='center', va='bottom', fontweight='bold')
+        
+        # Precision
+        bars2 = ax2.bar(models, metrics_data['Precision'], color=colors, alpha=0.8, edgecolor='white', linewidth=2)
+        ax2.set_title('Precision', fontweight='bold', color='#1e293b')
+        ax2.set_ylabel('Score', fontweight='bold')
+        ax2.tick_params(axis='x', rotation=45)
+        ax2.grid(True, alpha=0.3, axis='y')
+        
+        for bar in bars2:
+            height = bar.get_height()
+            ax2.text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                    f'{height:.3f}', ha='center', va='bottom', fontweight='bold')
+        
+        # Recall
+        bars3 = ax3.bar(models, metrics_data['Recall'], color=colors, alpha=0.8, edgecolor='white', linewidth=2)
+        ax3.set_title('Recall', fontweight='bold', color='#1e293b')
+        ax3.set_ylabel('Score', fontweight='bold')
+        ax3.tick_params(axis='x', rotation=45)
+        ax3.grid(True, alpha=0.3, axis='y')
+        
+        for bar in bars3:
+            height = bar.get_height()
+            ax3.text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                    f'{height:.3f}', ha='center', va='bottom', fontweight='bold')
+        
+        # F1-Score
+        bars4 = ax4.bar(models, metrics_data['F1-Score'], color=colors, alpha=0.8, edgecolor='white', linewidth=2)
+        ax4.set_title('F1-Score', fontweight='bold', color='#1e293b')
+        ax4.set_ylabel('Score', fontweight='bold')
+        ax4.tick_params(axis='x', rotation=45)
+        ax4.grid(True, alpha=0.3, axis='y')
+        
+        for bar in bars4:
+            height = bar.get_height()
+            ax4.text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                    f'{height:.3f}', ha='center', va='bottom', fontweight='bold')
+        
+        plt.tight_layout()
+        return fig
+    
+    @staticmethod
+    def create_radar_chart(results):
+        """Create radar chart using matplotlib"""
         models = []
         metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
         values = []
@@ -317,99 +374,43 @@ class InteractiveVisualizer:
                     result['f1_score']
                 ])
         
-        fig = go.Figure()
+        if not models:
+            return None
+            
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, polar=True)
+        
+        angles = np.linspace(0, 2*np.pi, len(metrics), endpoint=False).tolist()
+        angles += angles[:1]  # Close the circle
         
         colors = ['#2563eb', '#06d6a0', '#ffd166', '#ef476f']
         
         for i, model_values in enumerate(values):
-            fig.add_trace(go.Scatterpolar(
-                r=model_values + [model_values[0]],  # Close the circle
-                theta=metrics + [metrics[0]],
-                fill='toself',
-                name=models[i],
-                line=dict(color=colors[i], width=2),
-                opacity=0.8
-            ))
+            values_radar = model_values + [model_values[0]]  # Close the circle
+            ax.plot(angles, values_radar, 'o-', linewidth=2, label=models[i], color=colors[i])
+            ax.fill(angles, values_radar, alpha=0.1, color=colors[i])
         
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 1]
-                )
-            ),
-            showlegend=True,
-            title="Model Performance Radar",
-            font=dict(size=12),
-            height=400
-        )
-        
-        return fig
-    
-    @staticmethod
-    def create_metrics_comparison(results):
-        """Create interactive metrics comparison"""
-        models = []
-        metrics_data = {
-            'Accuracy': [],
-            'Precision': [],
-            'Recall': [],
-            'F1-Score': []
-        }
-        
-        for model_name, result in results.items():
-            if 'error' not in result:
-                models.append(model_name)
-                metrics_data['Accuracy'].append(result['accuracy'])
-                metrics_data['Precision'].append(result['precision'])
-                metrics_data['Recall'].append(result['recall'])
-                metrics_data['F1-Score'].append(result['f1_score'])
-        
-        fig = go.Figure()
-        
-        colors = ['#2563eb', '#06d6a0', '#ffd166', '#ef476f']
-        
-        for i, (metric, values) in enumerate(metrics_data.items()):
-            fig.add_trace(go.Bar(
-                name=metric,
-                x=models,
-                y=values,
-                marker_color=colors[i],
-                opacity=0.8
-            ))
-        
-        fig.update_layout(
-            title="Performance Metrics Comparison",
-            xaxis_title="Models",
-            yaxis_title="Score",
-            barmode='group',
-            height=400,
-            showlegend=True
-        )
+        ax.set_xticks(angles[:-1])
+        ax.set_xticklabels(metrics)
+        ax.set_ylim(0, 1)
+        ax.grid(True)
+        ax.legend(bbox_to_anchor=(1.1, 1.0))
+        plt.title('Model Performance Radar Chart', fontweight='bold', color='#1e293b', pad=20)
         
         return fig
     
     @staticmethod
     def create_confusion_matrix(results, model_name):
-        """Create confusion matrix for a specific model"""
+        """Create confusion matrix visualization"""
         if model_name in results and 'error' not in results[model_name]:
             result = results[model_name]
             cm = confusion_matrix(result['true_labels'], result['predictions'])
             
-            fig = go.Figure(data=go.Heatmap(
-                z=cm,
-                x=[f'Predicted {i}' for i in range(cm.shape[1])],
-                y=[f'Actual {i}' for i in range(cm.shape[0])],
-                colorscale='Blues',
-                showscale=True
-            ))
-            
-            fig.update_layout(
-                title=f"Confusion Matrix - {model_name}",
-                xaxis_title="Predicted Label",
-                yaxis_title="True Label",
-                height=400
-            )
+            fig, ax = plt.subplots(figsize=(8, 6))
+            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+            ax.set_xlabel('Predicted Labels')
+            ax.set_ylabel('True Labels')
+            ax.set_title(f'Confusion Matrix - {model_name}', fontweight='bold', color='#1e293b')
             
             return fig
         return None
@@ -461,24 +462,17 @@ def setup_sidebar():
                 help="Select the type of features to extract"
             )
             
-            # Advanced options
-            with st.sidebar.expander("Advanced Options"):
-                test_size = st.slider("Test Set Size", 0.1, 0.4, 0.2, 0.05)
-                max_features = st.slider("Max Features", 100, 2000, 1000, 100)
-            
-            st.session_state.config = {
-                'text_col': text_col,
-                'target_col': target_col,
-                'feature_type': feature_type,
-                'test_size': test_size,
-                'max_features': max_features
-            }
-            
             # Analysis button
             if st.sidebar.button("🚀 Start Analysis", use_container_width=True):
                 st.session_state.analyze_clicked = True
             else:
                 st.session_state.analyze_clicked = False
+                
+            st.session_state.config = {
+                'text_col': text_col,
+                'target_col': target_col,
+                'feature_type': feature_type
+            }
                 
         except Exception as e:
             st.sidebar.error(f"Error reading file: {str(e)}")
@@ -525,9 +519,10 @@ def main_content():
         </div>
         """, unsafe_allow_html=True)
     with col4:
+        unique_classes = df[config.get('target_col', '')].nunique() if config.get('target_col') in df.columns else 0
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-value">{df[config.get('target_col', '')].nunique() if config.get('target_col') in df.columns else 0}</div>
+            <div class="metric-value">{unique_classes}</div>
             <div class="metric-label">Unique Classes</div>
         </div>
         """, unsafe_allow_html=True)
@@ -539,6 +534,23 @@ def main_content():
             st.dataframe(df.head(10), use_container_width=True)
         with tab2:
             st.write(df.describe(include='all'))
+    
+    # Class distribution
+    if config.get('target_col') in df.columns:
+        st.markdown("<div class='section-header'>📈 Class Distribution</div>", unsafe_allow_html=True)
+        fig, ax = plt.subplots(figsize=(10, 4))
+        value_counts = df[config['target_col']].value_counts()
+        bars = ax.bar(range(len(value_counts)), value_counts.values, color='#2563eb', alpha=0.8)
+        ax.set_xlabel('Classes')
+        ax.set_ylabel('Count')
+        ax.set_title('Class Distribution', fontweight='bold')
+        ax.grid(True, alpha=0.3)
+        
+        for bar, count in zip(bars, value_counts.values):
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.1, 
+                   str(count), ha='center', va='bottom', fontweight='bold')
+        
+        st.pyplot(fig)
     
     # Analysis results
     if st.session_state.get('analyze_clicked', False):
@@ -577,7 +589,7 @@ def show_welcome_screen():
         st.markdown("""
         <div class="professional-card">
             <h3>📊 Get Insights</h3>
-            <p>Receive comprehensive analysis with interactive visualizations</p>
+            <p>Receive comprehensive analysis with professional visualizations</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -586,7 +598,7 @@ def show_welcome_screen():
     features = [
         {"icon": "🤖", "title": "4 ML Algorithms", "desc": "Logistic Regression, Random Forest, SVM, Naive Bayes"},
         {"icon": "🔧", "title": "Multiple Feature Types", "desc": "Lexical, Semantic, Syntactic, Pragmatic analysis"},
-        {"icon": "📈", "title": "Interactive Visualizations", "desc": "Professional charts and performance metrics"},
+        {"icon": "📈", "title": "Professional Visualizations", "desc": "Clean charts and performance metrics"},
         {"icon": "🎯", "title": "Pragmatic Analysis", "desc": "Advanced context and intent detection"}
     ]
     
@@ -624,22 +636,28 @@ def perform_analysis(df, config):
         return
     
     # Feature extraction
-    with st.spinner("Extracting features..."):
+    with st.spinner("🔄 Extracting features..."):
         extractor = ProfessionalFeatureExtractor()
         X = df[config['text_col']].astype(str)
         y = df[config['target_col']]
         
         if config['feature_type'] == "Lexical Features":
             X_features = extractor.extract_lexical_features(X)
+            feature_desc = "Word-level analysis with lemmatization"
         elif config['feature_type'] == "Semantic Features":
             X_features = extractor.extract_semantic_features(X)
+            feature_desc = "Sentiment analysis and text complexity"
         elif config['feature_type'] == "Syntactic Features":
             X_features = extractor.extract_syntactic_features(X)
+            feature_desc = "Grammar structure and part-of-speech analysis"
         else:  # Pragmatic Features
             X_features = extractor.extract_pragmatic_features(X)
+            feature_desc = "Context analysis and intent detection"
+    
+    st.success(f"✅ Feature extraction completed: {feature_desc}")
     
     # Model training
-    with st.spinner("Training machine learning models..."):
+    with st.spinner("🤖 Training machine learning models..."):
         trainer = ProfessionalModelTrainer()
         results, label_encoder = trainer.train_and_evaluate(X_features, y)
     
@@ -681,32 +699,64 @@ def perform_analysis(df, config):
                 </div>
                 """, unsafe_allow_html=True)
         
-        # Interactive visualizations
-        st.markdown("#### 📊 Interactive Analytics")
+        # Visualizations
+        st.markdown("#### 📊 Performance Analytics")
         
-        tab1, tab2, tab3 = st.tabs(["Performance Radar", "Metrics Comparison", "Confusion Matrix"])
+        viz = ProfessionalVisualizer()
+        
+        tab1, tab2, tab3 = st.tabs(["Comparison Chart", "Radar Chart", "Confusion Matrix"])
         
         with tab1:
-            viz = InteractiveVisualizer()
-            radar_fig = viz.create_performance_radar(successful_models)
-            st.plotly_chart(radar_fig, use_container_width=True)
+            comparison_fig = viz.create_performance_comparison(successful_models)
+            st.pyplot(comparison_fig)
         
         with tab2:
-            metrics_fig = viz.create_metrics_comparison(successful_models)
-            st.plotly_chart(metrics_fig, use_container_width=True)
+            radar_fig = viz.create_radar_chart(successful_models)
+            if radar_fig:
+                st.pyplot(radar_fig)
         
         with tab3:
-            model_choice = st.selectbox("Select Model", list(successful_models.keys()))
+            model_choice = st.selectbox("Select Model for Confusion Matrix", list(successful_models.keys()))
             cm_fig = viz.create_confusion_matrix(successful_models, model_choice)
             if cm_fig:
-                st.plotly_chart(cm_fig, use_container_width=True)
+                st.pyplot(cm_fig)
         
         # Best model recommendation
         best_model = max(successful_models.items(), key=lambda x: x[1]['accuracy'])
         st.success(f"🎯 **Recommended Model**: {best_model[0]} with {best_model[1]['accuracy']:.1%} accuracy")
+        
+        # Insights
+        st.markdown("#### 💡 Analysis Insights")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            <div class="professional-card">
+                <h4>📋 Next Steps</h4>
+                <ul>
+                    <li>Try different feature types</li>
+                    <li>Experiment with hyperparameters</li>
+                    <li>Consider data preprocessing</li>
+                    <li>Validate with cross-validation</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("""
+            <div class="professional-card">
+                <h4>🔧 Optimization Tips</h4>
+                <ul>
+                    <li>Balance your dataset if needed</li>
+                    <li>Try feature engineering</li>
+                    <li>Consider ensemble methods</li>
+                    <li>Monitor for overfitting</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
     
     else:
-        st.error("No models were successfully trained. Please check your data and configuration.")
+        st.error("❌ No models were successfully trained. Please check your data and configuration.")
 
 # ============================
 # Main Application
