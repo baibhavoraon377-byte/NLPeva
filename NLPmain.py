@@ -1,5 +1,5 @@
 # ============================================
-# 🎬 Netflix Style NLP Analysis Suite
+# 🎬 NLP Analysis Suite
 # ============================================
 
 import streamlit as st
@@ -25,8 +25,8 @@ import seaborn as sns
 # Page Configuration
 # ============================
 st.set_page_config(
-    page_title="NLPflix - Text Analysis",
-    page_icon="🎬",
+    page_title="NLP Analyzer Pro",
+    page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -530,7 +530,7 @@ class NetflixVisualizer:
 # ============================
 def setup_sidebar():
     """Setup Netflix-style sidebar"""
-    st.sidebar.markdown("<div class='sidebar-header'>🎬 NLPFLIX</div>", unsafe_allow_html=True)
+    st.sidebar.markdown("<div class='sidebar-header'>🔍 NLP ANALYZER PRO</div>", unsafe_allow_html=True)
     st.sidebar.markdown("---")
     
     st.sidebar.markdown("<div class='sidebar-header'>📁 UPLOAD DATA</div>", unsafe_allow_html=True)
@@ -592,11 +592,11 @@ def setup_sidebar():
 def main_content():
     """Main content with Netflix style"""
     
-    # Netflix Header
+    # Netflix Header - Changed to NLP Analyzer Pro
     st.markdown("""
     <div class='netflix-header'>
         <div style='text-align: center;'>
-            <h1 style='color: #e50914; font-size: 4rem; font-weight: 900; margin: 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.5);'>NLPFLIX</h1>
+            <h1 style='color: #e50914; font-size: 4rem; font-weight: 900; margin: 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.5);'>NLP ANALYZER PRO</h1>
             <p style='color: #f5f5f1; font-size: 1.3rem; margin: 0.5rem 0 0 0;'>Advanced Text Intelligence Platform</p>
         </div>
     </div>
