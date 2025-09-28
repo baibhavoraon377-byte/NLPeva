@@ -1,5 +1,5 @@
 # ============================================
-# 🎯 Amazon Prime Style NLP Analysis Suite - Enhanced Colors
+# 🎯 NLP Analysis Suite
 # ============================================
 
 import streamlit as st
@@ -15,202 +15,132 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-import time # Added for progress bar simulation
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # ============================
-# Configuration
+# Page Configuration
 # ============================
 st.set_page_config(
-    page_title="NLP Pro | Amazon Prime Style",
-    page_icon="🎯",
+    page_title="NLP Analyzer Pro",
+    page_icon="🔍",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # ============================
-# Enhanced Amazon Prime Style CSS (NO CHANGES)
+# Professional CSS Styling
 # ============================
 st.markdown("""
 <style>
-    /* Enhanced Amazon Prime Color Scheme */
+    /* Modern Professional Color Scheme */
     :root {
-        --prime-blue: #146EB4;
-        --prime-dark: #0F4E8A;
-        --prime-navy: #1A3E6B;
-        --prime-royal: #2D5A8A;
-        --prime-white: #FFFFFF;
-        --prime-light: #F5F8FA;
-        --prime-orange: #FF9900;
-        --prime-text: #232F3E;
-        --prime-text-light: #4A5568;
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary: #64748b;
+        --accent: #06d6a0;
+        --background: #f8fafc;
+        --card: #ffffff;
+        --text: #1e293b;
+        --text-light: #64748b;
+        --border: #e2e8f0;
     }
     
-    .main-header {
-        font-size: 3.5rem;
-        color: var(--prime-navy);
-        text-align: center;
-        margin-bottom: 1rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Main container */
+    .main-container {
+        background-color: var(--background);
+        padding: 2rem;
     }
     
-    .prime-card {
-        background: var(--prime-white);
-        border: 1px solid #E1E8ED;
+    /* Cards */
+    .professional-card {
+        background: var(--card);
+        border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 1.8rem;
-        margin: 0.8rem 0;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin: 1rem 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
-        border-left: 4px solid var(--prime-blue);
     }
     
-    .prime-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(20, 110, 180, 0.15);
-        border-left-color: var(--prime-orange);
+    .professional-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
     }
     
-    .metric-highlight {
-        background: linear-gradient(135deg, var(--prime-blue) 0%, var(--prime-dark) 100%);
-        color: var(--prime-white);
+    /* Metrics */
+    .metric-card {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
         padding: 1.5rem;
         border-radius: 12px;
         text-align: center;
-        margin: 0.8rem 0;
-        box-shadow: 0 4px 12px rgba(20, 110, 180, 0.2);
-    }
-    
-    .prime-button {
-        background: linear-gradient(135deg, var(--prime-orange) 0%, #E67E22 100%) !important;
-        color: var(--prime-white) !important;
-        border: none !important;
-        padding: 1rem 2.5rem !important;
-        border-radius: 8px !important;
-        font-weight: 700 !important;
-        font-size: 1.1rem !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3) !important;
-    }
-    
-    .prime-button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(255, 153, 0, 0.4) !important;
-    }
-    
-    .section-title {
-        font-size: 2rem;
-        color: var(--prime-navy);
-        margin: 2.5rem 0 1.5rem 0;
-        font-weight: 700;
-        border-bottom: 3px solid var(--prime-blue);
-        padding-bottom: 0.8rem;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-    
-    .feature-tag {
-        background: linear-gradient(135deg, var(--prime-light) 0%, #E1E8ED 100%);
-        color: var(--prime-text);
-        padding: 0.6rem 1.2rem;
-        border-radius: 25px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin: 0.4rem;
-        display: inline-block;
-        border: 1px solid #D1D9E0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-    
-    .status-indicator {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 0.8rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-    
-    .status-active { background: #27AE60; }
-    .status-warning { background: #F39C12; }
-    .status-error { background: #E74C3C; }
-    
-    .nav-bar {
-        background: linear-gradient(135deg, var(--prime-navy) 0%, var(--prime-dark) 100%);
-        padding: 1.5rem 3rem;
-        border-radius: 12px;
-        margin-bottom: 2.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-    
-    .nav-title {
-        color: var(--prime-white);
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin: 0;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    }
-    
-    .insight-box {
-        background: linear-gradient(135deg, #F8FBFF 0%, #E8F2FF 100%);
-        border-left: 4px solid var(--prime-blue);
-        padding: 2rem;
-        border-radius: 12px;
-        margin: 1.5rem 0;
-        box-shadow: 0 4px 12px rgba(20, 110, 180, 0.1);
-        border: 1px solid #E1E8ED;
-    }
-    
-    .performance-badge {
-        background: linear-gradient(135deg, var(--prime-orange) 0%, #E67E22 100%);
-        color: var(--prime-white);
-        padding: 0.8rem 1.5rem;
-        border-radius: 25px;
-        font-size: 1rem;
-        font-weight: 700;
-        display: inline-block;
-        box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
+        margin: 0.5rem;
     }
     
     .metric-value {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: var(--prime-blue);
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
     }
     
     .metric-label {
-        font-size: 1rem;
-        color: var(--prime-text-light);
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    /* Sections */
+    .section-header {
+        font-size: 1.5rem;
         font-weight: 600;
-        margin-top: 0.5rem;
+        color: var(--text);
+        margin: 2rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border);
     }
     
-    /* Text color enhancements */
-    .stMarkdown, .stText, .stLabel {
-        color: var(--prime-text) !important;
+    /* Sidebar */
+    .sidebar-header {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 1rem;
     }
     
-    .stSelectbox label, .stRadio label, .stSlider label {
-        color: var(--prime-text) !important;
-        font-weight: 600 !important;
+    /* Buttons */
+    .stButton button {
+        width: 100%;
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
     }
     
-    .stExpander {
-        border: 1px solid #E1E8ED !important;
-        border-radius: 12px !important;
-        margin: 1rem 0 !important;
+    .stButton button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
     }
     
-    .stExpander summary {
-        color: var(--prime-navy) !important;
-        font-weight: 700 !important;
-        font-size: 1.1rem !important;
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2rem;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: var(--card);
+        border-radius: 8px 8px 0px 0px;
+        gap: 1rem;
+        padding: 1rem 2rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -225,7 +155,8 @@ def load_nlp_model():
         return nlp
     except OSError:
         st.error("""
-        **SpaCy English model not found.** Please install: `python -m spacy download en_core_web_sm`
+        **SpaCy English model not found.** 
+        Please install: `python -m spacy download en_core_web_sm`
         """)
         st.stop()
 
@@ -234,9 +165,8 @@ stop_words = STOP_WORDS
 
 # ============================
 # Feature Engineering Classes
-# (NO CHANGES)
 # ============================
-class PrimeFeatureExtractor:
+class ProfessionalFeatureExtractor:
     @staticmethod
     def extract_lexical_features(texts):
         """Extract lexical features with advanced preprocessing"""
@@ -303,20 +233,19 @@ class PrimeFeatureExtractor:
         return np.array(pragmatic_features)
 
 # ============================
-# Prime Model Trainer
-# (NO CHANGES, except adding 'import time')
+# Professional Model Trainer
 # ============================
-class PrimeModelTrainer:
+class ProfessionalModelTrainer:
     def __init__(self):
         self.models = {
-            "🎯 Logistic Regression": LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced'),
-            "🌲 Random Forest": RandomForestClassifier(n_estimators=150, random_state=42, class_weight='balanced'),
-            "⚡ Support Vector Machine": SVC(random_state=42, probability=True, class_weight='balanced'),
-            "📊 Naive Bayes": MultinomialNB()
+            "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced'),
+            "Random Forest": RandomForestClassifier(n_estimators=150, random_state=42, class_weight='balanced'),
+            "Support Vector Machine": SVC(random_state=42, probability=True, class_weight='balanced'),
+            "Naive Bayes": MultinomialNB()
         }
     
     def train_and_evaluate(self, X, y):
-        """Prime-style model training with comprehensive evaluation"""
+        """Professional model training with comprehensive evaluation"""
         results = {}
         
         le = LabelEncoder()
@@ -328,20 +257,16 @@ class PrimeModelTrainer:
             X, y_encoded, test_size=test_size, random_state=42, stratify=y_encoded
         )
         
-        progress_container = st.empty()
+        progress_bar = st.progress(0)
+        status_text = st.empty()
         
         for i, (name, model) in enumerate(self.models.items()):
-            # Use an enhanced, more professional progress display
-            with progress_container.container():
-                st.info(f"🚀 **Training Model {i+1}/{len(self.models)}**: {name}...")
-                progress_bar = st.progress(0)
-                for step in range(1, 6):
-                    progress_bar.progress(step / 5)
-                    time.sleep(0.1)
-                
+            status_text.text(f"Training {name}...")
+            
             try:
                 model.fit(X_train, y_train)
                 y_pred = model.predict(X_test)
+                y_proba = model.predict_proba(X_test) if hasattr(model, 'predict_proba') else None
                 
                 accuracy = accuracy_score(y_test, y_pred)
                 precision = precision_score(y_test, y_pred, average='weighted', zero_division=0)
@@ -354,369 +279,450 @@ class PrimeModelTrainer:
                     'recall': recall,
                     'f1_score': f1,
                     'model': model,
+                    'predictions': y_pred,
+                    'true_labels': y_test,
+                    'probabilities': y_proba,
                     'n_classes': n_classes,
                     'test_size': len(y_test)
                 }
                 
             except Exception as e:
                 results[name] = {'error': str(e)}
+            
+            progress_bar.progress((i + 1) / len(self.models))
         
-        progress_container.empty()
+        progress_bar.empty()
+        status_text.text("Training completed!")
+        
         return results, le
 
 # ============================
-# Enhanced Visualization Engine
-# (Minor changes for plot professionalism)
+# Interactive Visualizations
 # ============================
-class PrimeVisualizer:
+class InteractiveVisualizer:
     @staticmethod
-    def create_performance_dashboard(results):
-        """Create enhanced performance dashboard"""
-        # Adjusted figsize for better visual spacing
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(18, 14)) 
-        fig.suptitle('Comprehensive Model Performance Dashboard', fontsize=22, fontweight='bold', color='#1A3E6B')
-        
-        # Set overall style
-        plt.rcParams['font.family'] = 'sans-serif'
-        plt.rcParams['axes.facecolor'] = '#F5F8FA'
-        
+    def create_performance_radar(results):
+        """Create interactive radar chart"""
         models = []
-        metrics = {'Accuracy': [], 'Precision': [], 'Recall': [], 'F1-Score': []}
+        metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
+        values = []
         
         for model_name, result in results.items():
             if 'error' not in result:
-                clean_name = model_name.replace('🎯 ', '').replace('🌲 ', '').replace('⚡ ', '').replace('📊 ', '')
-                models.append(clean_name)
-                metrics['Accuracy'].append(result['accuracy'])
-                metrics['Precision'].append(result['precision'])
-                metrics['Recall'].append(result['recall'])
-                metrics['F1-Score'].append(result['f1_score'])
+                models.append(model_name)
+                values.append([
+                    result['accuracy'],
+                    result['precision'],
+                    result['recall'],
+                    result['f1_score']
+                ])
         
-        # Color scheme
-        colors = ['#146EB4', '#FF9900', '#27AE60', '#E74C3C']
+        fig = go.Figure()
         
-        # --- 1. Accuracy plot (Bar Chart) ---
-        bars1 = ax1.bar(models, metrics['Accuracy'], color=colors, alpha=0.9)
-        ax1.set_facecolor('#F8FBFF')
-        ax1.set_title('Model Accuracy Comparison', fontweight='bold', fontsize=16, color='#1A3E6B')
-        ax1.set_ylabel('Accuracy Score', fontweight='bold', color='#4A5568')
-        ax1.set_ylim(max(0, min(metrics['Accuracy'])*0.9), 1.05) # Professional Y-axis scaling
-        ax1.tick_params(axis='x', rotation=45, colors='#4A5568')
-        ax1.tick_params(axis='y', colors='#4A5568')
-        ax1.grid(axis='y', alpha=0.5, linestyle='--') # Only horizontal grid lines for cleanliness
+        colors = ['#2563eb', '#06d6a0', '#ffd166', '#ef476f']
         
-        for bar in bars1:
-            height = bar.get_height()
-            ax1.text(bar.get_x() + bar.get_width()/2., height + 0.01,
-                    f'{height:.3f}', ha='center', va='bottom', fontweight='bold', color='#1A3E6B')
+        for i, model_values in enumerate(values):
+            fig.add_trace(go.Scatterpolar(
+                r=model_values + [model_values[0]],  # Close the circle
+                theta=metrics + [metrics[0]],
+                fill='toself',
+                name=models[i],
+                line=dict(color=colors[i], width=2),
+                opacity=0.8
+            ))
         
-        # --- 2. F1-Score plot (Bar Chart) ---
-        bars2 = ax2.bar(models, metrics['F1-Score'], color=colors, alpha=0.9)
-        ax2.set_facecolor('#F8FBFF')
-        ax2.set_title('F1-Score Comparison (Balanced Metric)', fontweight='bold', fontsize=16, color='#1A3E6B')
-        ax2.set_ylabel('F1-Score', fontweight='bold', color='#4A5568')
-        ax2.set_ylim(max(0, min(metrics['F1-Score'])*0.9), 1.05)
-        ax2.tick_params(axis='x', rotation=45, colors='#4A5568')
-        ax2.tick_params(axis='y', colors='#4A5568')
-        ax2.grid(axis='y', alpha=0.5, linestyle='--')
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 1]
+                )
+            ),
+            showlegend=True,
+            title="Model Performance Radar",
+            font=dict(size=12),
+            height=400
+        )
         
-        for bar in bars2:
-            height = bar.get_height()
-            ax2.text(bar.get_x() + bar.get_width()/2., height + 0.01,
-                    f'{height:.3f}', ha='center', va='bottom', fontweight='bold', color='#1A3E6B')
-        
-        # --- 3. Precision-Recall comparison (Grouped Bar Chart) ---
-        x_index = np.arange(len(models))
-        width = 0.35
-        bars3 = ax3.bar(x_index - width/2, metrics['Precision'], width, label='Precision', 
-                       color='#146EB4', alpha=0.9)
-        bars4 = ax3.bar(x_index + width/2, metrics['Recall'], width, label='Recall', 
-                       color='#FF9900', alpha=0.9)
-        ax3.set_facecolor('#F8FBFF')
-        ax3.set_title('Precision vs Recall Trade-off', fontweight='bold', fontsize=16, color='#1A3E6B')
-        ax3.set_ylabel('Score Value', fontweight='bold', color='#4A5568')
-        ax3.set_xticks(x_index)
-        ax3.set_xticklabels(models, rotation=45, color='#4A5568')
-        ax3.tick_params(axis='y', colors='#4A5568')
-        ax3.legend(facecolor='#F8FBFF', frameon=True, edgecolor='#D1D9E0') # Added frame for professionalism
-        ax3.grid(axis='y', alpha=0.5, linestyle='--')
-        
-        # --- 4. Model comparison radar (Radar Chart) ---
-        
-        # Ensure only models with results are included in the radar
-        if len(models) > 0:
-            metrics_array = np.array([metrics['Accuracy'], metrics['Precision'], 
-                                    metrics['Recall'], metrics['F1-Score']])
-            
-            # Normalize by the max value across all metrics for an effective radar comparison
-            global_max = metrics_array.max()
-            metrics_normalized = metrics_array / global_max
-            
-            # Setup radar angles
-            categories = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
-            N = len(categories)
-            angles = np.linspace(0, 2*np.pi, N, endpoint=False).tolist()
-            angles += angles[:1]
-            
-            # Initialize subplot as polar projection
-            ax4 = plt.subplot(2, 2, 4, polar=True)
-            
-            for i, model in enumerate(models):
-                values = metrics_normalized[:, i].tolist()
-                values += values[:1]
-                ax4.plot(angles, values, 'o-', linewidth=2.5, label=model, color=colors[i], markersize=6)
-                ax4.fill(angles, values, alpha=0.1, color=colors[i])
-            
-            ax4.set_facecolor('#F8FBFF')
-            ax4.set_rlabel_position(0)
-            ax4.set_yticks(np.linspace(0.2, 1.0, 5)) 
-            ax4.set_yticklabels([f'{v:.1f}' for v in np.linspace(0.2, global_max, 5)], color="#4A5568", fontsize=10)
-            ax4.set_xticks(angles[:-1])
-            ax4.set_xticklabels(categories, color='#1A3E6B', fontweight='bold', size=12)
-            ax4.set_title('Performance Radar (Normalized)', y=1.1, fontweight='bold', fontsize=16, color='#1A3E6B')
-            ax4.legend(facecolor='#F8FBFF', bbox_to_anchor=(1.2, 1.0), frameon=True, edgecolor='#D1D9E0')
-        else:
-            ax4.axis('off') # Hide axis if no successful models
-            ax4.text(0.5, 0.5, "No models trained for radar.", ha='center', va='center', fontsize=14, color='#E74C3C')
-
-        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         return fig
+    
+    @staticmethod
+    def create_metrics_comparison(results):
+        """Create interactive metrics comparison"""
+        models = []
+        metrics_data = {
+            'Accuracy': [],
+            'Precision': [],
+            'Recall': [],
+            'F1-Score': []
+        }
+        
+        for model_name, result in results.items():
+            if 'error' not in result:
+                models.append(model_name)
+                metrics_data['Accuracy'].append(result['accuracy'])
+                metrics_data['Precision'].append(result['precision'])
+                metrics_data['Recall'].append(result['recall'])
+                metrics_data['F1-Score'].append(result['f1_score'])
+        
+        fig = go.Figure()
+        
+        colors = ['#2563eb', '#06d6a0', '#ffd166', '#ef476f']
+        
+        for i, (metric, values) in enumerate(metrics_data.items()):
+            fig.add_trace(go.Bar(
+                name=metric,
+                x=models,
+                y=values,
+                marker_color=colors[i],
+                opacity=0.8
+            ))
+        
+        fig.update_layout(
+            title="Performance Metrics Comparison",
+            xaxis_title="Models",
+            yaxis_title="Score",
+            barmode='group',
+            height=400,
+            showlegend=True
+        )
+        
+        return fig
+    
+    @staticmethod
+    def create_confusion_matrix(results, model_name):
+        """Create confusion matrix for a specific model"""
+        if model_name in results and 'error' not in results[model_name]:
+            result = results[model_name]
+            cm = confusion_matrix(result['true_labels'], result['predictions'])
+            
+            fig = go.Figure(data=go.Heatmap(
+                z=cm,
+                x=[f'Predicted {i}' for i in range(cm.shape[1])],
+                y=[f'Actual {i}' for i in range(cm.shape[0])],
+                colorscale='Blues',
+                showscale=True
+            ))
+            
+            fig.update_layout(
+                title=f"Confusion Matrix - {model_name}",
+                xaxis_title="Predicted Label",
+                yaxis_title="True Label",
+                height=400
+            )
+            
+            return fig
+        return None
 
 # ============================
-# Main Application
-# (Refactored for Professional Flow)
+# Sidebar Configuration
 # ============================
-def main():
-    # ENHANCED HEADER (Simpler Streamlit components used for a cleaner look)
-    st.markdown(f'<div class="nav-bar"><h1 class="nav-title">🎯 NLP Pro Analysis Suite</h1></div>', unsafe_allow_html=True)
-    st.markdown("<div class='main-header' style='text-align: left;'>Advanced Text Intelligence Platform</div>", unsafe_allow_html=True)
+def setup_sidebar():
+    """Setup the sidebar for file upload and analysis configuration"""
+    st.sidebar.markdown("<div class='sidebar-header'>📁 Data Configuration</div>", unsafe_allow_html=True)
     
-    # Feature Highlights (Kept as a strong visual element)
+    uploaded_file = st.sidebar.file_uploader(
+        "Upload CSV File",
+        type=["csv"],
+        help="Upload your dataset in CSV format"
+    )
+    
+    if uploaded_file is not None:
+        try:
+            df = pd.read_csv(uploaded_file)
+            st.session_state.df = df
+            st.session_state.file_uploaded = True
+            
+            st.sidebar.success(f"✅ Dataset loaded: {df.shape[0]} rows, {df.shape[1]} columns")
+            
+            # Column selection
+            st.sidebar.markdown("<div class='sidebar-header'>⚙️ Analysis Setup</div>", unsafe_allow_html=True)
+            
+            text_col = st.sidebar.selectbox(
+                "Text Column",
+                df.columns,
+                help="Select the column containing text data"
+            )
+            
+            target_col = st.sidebar.selectbox(
+                "Target Column",
+                df.columns,
+                help="Select the column containing labels"
+            )
+            
+            feature_type = st.sidebar.selectbox(
+                "Feature Type",
+                [
+                    "Lexical Features",
+                    "Semantic Features", 
+                    "Syntactic Features",
+                    "Pragmatic Features"
+                ],
+                help="Select the type of features to extract"
+            )
+            
+            # Advanced options
+            with st.sidebar.expander("Advanced Options"):
+                test_size = st.slider("Test Set Size", 0.1, 0.4, 0.2, 0.05)
+                max_features = st.slider("Max Features", 100, 2000, 1000, 100)
+            
+            st.session_state.config = {
+                'text_col': text_col,
+                'target_col': target_col,
+                'feature_type': feature_type,
+                'test_size': test_size,
+                'max_features': max_features
+            }
+            
+            # Analysis button
+            if st.sidebar.button("🚀 Start Analysis", use_container_width=True):
+                st.session_state.analyze_clicked = True
+            else:
+                st.session_state.analyze_clicked = False
+                
+        except Exception as e:
+            st.sidebar.error(f"Error reading file: {str(e)}")
+    else:
+        st.session_state.file_uploaded = False
+        st.session_state.analyze_clicked = False
+
+# ============================
+# Main Content
+# ============================
+def main_content():
+    """Main content area displaying analysis results"""
+    
+    if not st.session_state.get('file_uploaded', False):
+        show_welcome_screen()
+        return
+    
+    df = st.session_state.df
+    config = st.session_state.get('config', {})
+    
+    # Display dataset overview
+    st.markdown("<div class='section-header'>📊 Dataset Overview</div>", unsafe_allow_html=True)
+    
     col1, col2, col3, col4 = st.columns(4)
-    features_data = [
-        ("📖 Lexical", "Word-level Analysis"),
-        ("🎭 Semantic", "Meaning & Sentiment"),
-        ("🔧 Syntactic", "Grammar & Structure"),
-        ("🎯 Pragmatic", "Context & Intent")
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{df.shape[0]}</div>
+            <div class="metric-label">Total Records</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{df.shape[1]}</div>
+            <div class="metric-label">Features</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{df.isnull().sum().sum()}</div>
+            <div class="metric-label">Missing Values</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{df[config.get('target_col', '')].nunique() if config.get('target_col') in df.columns else 0}</div>
+            <div class="metric-label">Unique Classes</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Data preview
+    with st.expander("🔍 Data Preview", expanded=True):
+        tab1, tab2 = st.tabs(["First 10 Rows", "Data Statistics"])
+        with tab1:
+            st.dataframe(df.head(10), use_container_width=True)
+        with tab2:
+            st.write(df.describe(include='all'))
+    
+    # Analysis results
+    if st.session_state.get('analyze_clicked', False):
+        perform_analysis(df, config)
+
+def show_welcome_screen():
+    """Display welcome screen when no file is uploaded"""
+    st.markdown("""
+    <div style='text-align: center; padding: 4rem 2rem;'>
+        <h1 style='color: #2563eb; font-size: 3rem; margin-bottom: 1rem;'>🔍 NLP Analyzer Pro</h1>
+        <p style='color: #64748b; font-size: 1.2rem; margin-bottom: 2rem;'>
+            Professional Text Analysis Platform
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div class="professional-card">
+            <h3>📁 Upload Data</h3>
+            <p>Use the sidebar to upload your CSV dataset containing text and labels</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="professional-card">
+            <h3>⚙️ Configure Analysis</h3>
+            <p>Select text columns, target variables, and analysis parameters</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div class="professional-card">
+            <h3>📊 Get Insights</h3>
+            <p>Receive comprehensive analysis with interactive visualizations</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<div class='section-header'>✨ Key Features</div>", unsafe_allow_html=True)
+    
+    features = [
+        {"icon": "🤖", "title": "4 ML Algorithms", "desc": "Logistic Regression, Random Forest, SVM, Naive Bayes"},
+        {"icon": "🔧", "title": "Multiple Feature Types", "desc": "Lexical, Semantic, Syntactic, Pragmatic analysis"},
+        {"icon": "📈", "title": "Interactive Visualizations", "desc": "Professional charts and performance metrics"},
+        {"icon": "🎯", "title": "Pragmatic Analysis", "desc": "Advanced context and intent detection"}
     ]
-    for col, (title, desc) in zip([col1, col2, col3, col4], features_data):
-        with col:
+    
+    cols = st.columns(2)
+    for i, feature in enumerate(features):
+        with cols[i % 2]:
             st.markdown(f"""
-            <div class="metric-highlight">
-                <h3 style="color: white; margin: 0; font-size: 1.5rem;">{title}</h3>
-                <p style="color: #E1F0FF; margin: 0.5rem 0 0 0; font-size: 0.9rem;">{desc}</p>
+            <div class="professional-card">
+                <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                    <span style="font-size: 2rem; margin-right: 1rem;">{feature['icon']}</span>
+                    <h4 style="margin: 0; color: #1e293b;">{feature['title']}</h4>
+                </div>
+                <p style="color: #64748b; margin: 0;">{feature['desc']}</p>
             </div>
             """, unsafe_allow_html=True)
 
-    # Main application logic
+def perform_analysis(df, config):
+    """Perform the actual NLP analysis"""
+    st.markdown("<div class='section-header'>📈 Analysis Results</div>", unsafe_allow_html=True)
     
-    # --- Data Integration Container ---
-    data_container = st.container()
+    # Data validation
+    if config['text_col'] not in df.columns or config['target_col'] not in df.columns:
+        st.error("Selected columns not found in dataset.")
+        return
     
-    with data_container:
-        st.markdown('<div class="section-title">📁 Data Integration & Configuration</div>', unsafe_allow_html=True)
-        
-        uploaded_file = st.file_uploader("Upload your dataset (CSV)", type=["csv"], 
-                                       help="Select a CSV file containing your text and target columns.")
+    if df[config['text_col']].isnull().any():
+        df[config['text_col']] = df[config['text_col']].fillna('')
     
-    if uploaded_file is None:
-        # Enhanced Welcome Section - Moved to top when no file is uploaded
-        st.markdown("""
-        <div style='text-align: center; padding: 4rem 2rem; background: linear-gradient(135deg, #F8FBFF 0%, #E8F2FF 100%); 
-                    border-radius: 16px; margin: 3rem 0; border: 2px dashed #146EB4;'>
-            <h2 style='color: #1A3E6B; margin-bottom: 1.5rem; font-size: 2.5rem;'>🚀 Get Started with NLP Pro</h2>
-            <p style='color: #4A5568; font-size: 1.3rem; margin-bottom: 2.5rem; font-weight: 500;'>
-                Upload your CSV file to unlock powerful text analysis capabilities
-            </p>
-            <div style="display: inline-flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center;">
-                <span class="feature-tag">🤖 4 Advanced Models</span>
-                <span class="feature-tag">🎯 Pragmatic Analysis</span>
-                <span class="feature-tag">📊 Real-time Analytics</span>
-                <span class="feature-tag">⚡ Enterprise Grade</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        return # Stop execution if no file is uploaded
-
-    try:
-        df = pd.read_csv(uploaded_file)
+    if df[config['target_col']].isnull().any():
+        st.error("Target column contains missing values.")
+        return
+    
+    if len(df[config['target_col']].unique()) < 2:
+        st.error("Target column must have at least 2 unique classes.")
+        return
+    
+    # Feature extraction
+    with st.spinner("Extracting features..."):
+        extractor = ProfessionalFeatureExtractor()
+        X = df[config['text_col']].astype(str)
+        y = df[config['target_col']]
         
-        # Enhanced Success Message
-        st.markdown(f"""
-        <div class="insight-box">
-            <h4 style="color: #146EB4; margin-bottom: 1rem;">✅ Dataset Loaded Successfully</h4>
-            <div style="display: flex; justify-content: space-around;">
-                <p style="color: #4A5568;"><strong>Dimensions:</strong> {df.shape[0]} records × {df.shape[1]} features</p>
-                <p style="color: #4A5568;"><strong>Memory Usage:</strong> {df.memory_usage(deep=True).sum() / 1024 ** 2:.2f} MB</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        if config['feature_type'] == "Lexical Features":
+            X_features = extractor.extract_lexical_features(X)
+        elif config['feature_type'] == "Semantic Features":
+            X_features = extractor.extract_semantic_features(X)
+        elif config['feature_type'] == "Syntactic Features":
+            X_features = extractor.extract_syntactic_features(X)
+        else:  # Pragmatic Features
+            X_features = extractor.extract_pragmatic_features(X)
+    
+    # Model training
+    with st.spinner("Training machine learning models..."):
+        trainer = ProfessionalModelTrainer()
+        results, label_encoder = trainer.train_and_evaluate(X_features, y)
+    
+    # Display results
+    successful_models = {k: v for k, v in results.items() if 'error' not in v}
+    
+    if successful_models:
+        # Performance metrics
+        st.markdown("#### 🎯 Model Performance")
         
-        # --- Data Configuration Tabs ---
-        data_tab, config_tab = st.tabs(["🔍 Data Preview & Statistics", "⚙️ Analysis Setup"])
-        
-        with data_tab:
-            st.markdown("### Data Head Preview")
-            st.dataframe(df.head(8), use_container_width=True)
-            
-            st.markdown("### Dataset Summary Statistics")
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.markdown(f'<div class="metric-value">{df.shape[0]}</div>', unsafe_allow_html=True)
-                st.markdown('<div class="metric-label">Total Records</div>', unsafe_allow_html=True)
-            with col2:
-                st.markdown(f'<div class="metric-value">{df.shape[1]}</div>', unsafe_allow_html=True)
-                st.markdown('<div class="metric-label">Features</div>', unsafe_allow_html=True)
-            with col3:
-                st.markdown(f'<div class="metric-value">{df.isnull().sum().sum()}</div>', unsafe_allow_html=True)
-                st.markdown('<div class="metric-label">Missing Values</div>', unsafe_allow_html=True)
-            with col4:
-                st.markdown(f'<div class="metric-value">{len(df.dtypes.unique())}</div>', unsafe_allow_html=True)
-                st.markdown('<div class="metric-label">Data Types</div>', unsafe_allow_html=True)
-
-        # --- Configuration Tab ---
-        with config_tab:
-            st.markdown("### Column Selection")
-            col1, col2 = st.columns(2)
-            with col1:
-                text_col = st.selectbox("1. Text Column", df.columns, 
-                                      help="Select the column containing the primary text data for NLP.")
-            with col2:
-                target_col = st.selectbox("2. Target Column", df.columns,
-                                        help="Select the column containing the categorical labels for classification.")
-            
-            st.markdown("### Feature Engineering Type")
-            feature_type = st.radio("3. Select Analysis Type:", 
-                                  ["📖 Lexical Features", "🎭 Semantic Features", 
-                                   "🔧 Syntactic Features", "🎯 Pragmatic Features"],
-                                  horizontal=True, key="feature_radio")
-            
-            # Enhanced Analysis Button (Positioned at the end of configuration)
-            st.markdown("---")
-            if st.button("🚀 Launch Advanced Analysis", use_container_width=True, key="launch_analysis"):
-                
-                # --- Analysis Logic Starts Here ---
-                
-                # Data Validation
-                if df[text_col].isnull().any():
-                    df[text_col] = df[text_col].fillna('')
-                
-                if df[target_col].isnull().any():
-                    st.error("Target column contains missing values. Please clean your data.")
-                    return
-                
-                if len(df[target_col].unique()) < 2:
-                    st.error("Target column must have at least 2 unique classes for classification.")
-                    return
-
-                # Enhanced Class Distribution
-                st.markdown('<div class="section-title">📊 Class Distribution Analysis</div>', unsafe_allow_html=True)
-                fig, ax = plt.subplots(figsize=(12, 5))
-                value_counts = df[target_col].value_counts()
-                bars = ax.bar(value_counts.index.astype(str), value_counts.values, # Use class names on x-axis
-                            color='#146EB4', alpha=0.8, edgecolor='#0F4E8A', linewidth=2)
-                ax.set_facecolor('#F8FBFF')
-                ax.set_xlabel(f'Classes ({target_col})', fontweight='bold', color='#4A5568')
-                ax.set_ylabel('Count', fontweight='bold', color='#4A5568')
-                ax.set_title('Target Class Distribution', fontweight='bold', fontsize=14, color='#1A3E6B')
-                ax.grid(axis='y', alpha=0.3) # Only horizontal grid
-                
-                for bar, count in zip(bars, value_counts.values):
-                    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.1, 
-                           str(count), ha='center', va='bottom', fontweight='bold', color='#1A3E6B')
-                
-                st.pyplot(fig)
-                
-                # Feature Extraction
-                with st.spinner(f"🔄 Extracting advanced **{feature_type}** features..."):
-                    extractor = PrimeFeatureExtractor()
-                    X = df[text_col].astype(str)
-                    y = df[target_col]
-                    
-                    if feature_type == "📖 Lexical Features":
-                        X_features = extractor.extract_lexical_features(X)
-                        feature_desc = "Word-level analysis with advanced tokenization, lemmatization, and n-grams."
-                    elif feature_type == "🎭 Semantic Features":
-                        X_features = extractor.extract_semantic_features(X)
-                        feature_desc = "Sentiment (polarity/subjectivity) and text complexity features."
-                    elif feature_type == "🔧 Syntactic Features":
-                        X_features = extractor.extract_syntactic_features(X)
-                        feature_desc = "Grammar structure, Part-of-Speech (POS) analysis, and tag n-grams."
-                    else:  # Pragmatic Features
-                        X_features = extractor.extract_pragmatic_features(X)
-                        feature_desc = "Context analysis, modality word counts, intent detection cues, and punctuation."
-
-                # Feature Extraction Success
+        cols = st.columns(len(successful_models))
+        for idx, (model_name, result) in enumerate(successful_models.items()):
+            with cols[idx]:
+                accuracy = result['accuracy']
                 st.markdown(f"""
-                <div class="insight-box">
-                    <h4 style="color: #146EB4; margin-bottom: 1rem;">✅ Feature Extraction Complete</h4>
-                    <p style="color: #4A5568; margin: 0.5rem 0;"><strong>Feature Type:</strong> <span class="performance-badge" style="background: var(--prime-blue); margin: 0;">{feature_type}</span></p>
-                    <p style="color: #4A5568; margin: 0.5rem 0;"><strong>Description:</strong> {feature_desc}</p>
-                    <p style="color: #4A5568; margin: 0.5rem 0;"><strong>Feature Matrix Dimensions:</strong> <span style="font-weight: 700;">{X_features.shape[0]} rows × {X_features.shape[1]} features</span></p>
+                <div class="professional-card">
+                    <h4>{model_name}</h4>
+                    <div style="font-size: 2rem; font-weight: bold; color: #2563eb; text-align: center; margin: 1rem 0;">
+                        {accuracy:.1%}
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div style="text-align: center;">
+                            <small>Precision</small>
+                            <div style="font-weight: bold;">{result['precision']:.3f}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <small>Recall</small>
+                            <div style="font-weight: bold;">{result['recall']:.3f}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <small>F1-Score</small>
+                            <div style="font-weight: bold;">{result['f1_score']:.3f}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <small>Classes</small>
+                            <div style="font-weight: bold;">{result['n_classes']}</div>
+                        </div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
-                
-                # Model Training
-                st.markdown('<div class="section-title">🤖 Model Training Progression</div>', unsafe_allow_html=True)
-                with st.spinner("🤖 Training advanced classification models..."):
-                    trainer = PrimeModelTrainer()
-                    results, label_encoder = trainer.train_and_evaluate(X_features, y)
-                
-                # --- Results Section ---
-                st.markdown('<div class="section-title">📈 Performance Results & Analysis</div>', unsafe_allow_html=True)
-                
-                successful_models = {k: v for k, v in results.items() if 'error' not in v}
-                
-                if successful_models:
-                    # Performance Metrics Cards
-                    st.markdown("### Summary of Key Metrics")
-                    
-                    cols = st.columns(len(successful_models))
-                    for idx, (model_name, result) in enumerate(successful_models.items()):
-                        with cols[idx]:
-                            accuracy = result['accuracy']
-                            f1_score_val = result['f1_score']
-                            
-                            # Use F1-Score for badge color as it's a more balanced metric
-                            badge_color = "#27AE60" if f1_score_val > 0.8 else "#F39C12" if f1_score_val > 0.6 else "#E74C3C"
-                            
-                            st.markdown(f"""
-                            <div class="prime-card">
-                                <h4 style="color: #1A3E6B; margin-bottom: 0.5rem;">{model_name}</h4>
-                                <div style="margin-bottom: 1rem;">
-                                    <span class="performance-badge" style="background: {badge_color}">
-                                        F1: {f1_score_val:.3f}
-                                    </span>
-                                </div>
-                                <p style="color: #4A5568; margin: 0.5rem 0; font-weight: 600;">Accuracy: <span style="color: var(--prime-blue);">{accuracy:.3f}</span></p>
-                                <p style="color: #4A5568; margin: 0.5rem 0;"><small>Precision: {result['precision']:.3f} | Recall: {result['recall']:.3f}</small></p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    # Enhanced Performance Dashboard
-                    st.markdown("### Comprehensive Performance Dashboard")
-                    viz = PrimeVisualizer()
-                    dashboard_fig = viz.create_performance_dashboard(successful_models)
-                    st.pyplot(dashboard_fig)
-                    
-                    # Best Model Highlight
-                    best_model_name = max(successful_models.items(), key=lambda x: x[1]['f1_score'])[0]
-                    best_accuracy = successful_models[best_model_name]['accuracy']
-                    best_f1 = successful_models[best_model_name]['f1_score']
-                    
-                    st.markdown(f"""
-                    <div class="insight-box" style="border-left-color: var(--prime-orange);">
-                        <h4 style="color: var(--prime-orange); margin-bottom: 1rem;">👑 Deployment Recommendation</h4>
-                        <p style="color: #4A5568; margin: 0.5rem 0;">The model **{best_model_name}** is the recommended candidate for deployment.</p>
-                        <p style="color: #4A5568; margin: 0.5rem 0;">It achieved a leading **F1-Score** of <strong style="color: #E67E22;">{best_f1:.3f}</strong> and an **Accuracy** of <strong style="color: #146EB4;">{best_accuracy:.3f}</strong>, indicating a strong balance of precision and recall across all target classes.</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                else:
-                    st.error("No models were successfully trained. Please check the data, target column, or feature matrix for compatibility issues (e.g., Sparse Matrix and Naive Bayes incompatibility).")
         
-    except Exception as e:
-        st.error(f"Error processing file: {str(e)}")
+        # Interactive visualizations
+        st.markdown("#### 📊 Interactive Analytics")
+        
+        tab1, tab2, tab3 = st.tabs(["Performance Radar", "Metrics Comparison", "Confusion Matrix"])
+        
+        with tab1:
+            viz = InteractiveVisualizer()
+            radar_fig = viz.create_performance_radar(successful_models)
+            st.plotly_chart(radar_fig, use_container_width=True)
+        
+        with tab2:
+            metrics_fig = viz.create_metrics_comparison(successful_models)
+            st.plotly_chart(metrics_fig, use_container_width=True)
+        
+        with tab3:
+            model_choice = st.selectbox("Select Model", list(successful_models.keys()))
+            cm_fig = viz.create_confusion_matrix(successful_models, model_choice)
+            if cm_fig:
+                st.plotly_chart(cm_fig, use_container_width=True)
+        
+        # Best model recommendation
+        best_model = max(successful_models.items(), key=lambda x: x[1]['accuracy'])
+        st.success(f"🎯 **Recommended Model**: {best_model[0]} with {best_model[1]['accuracy']:.1%} accuracy")
+    
+    else:
+        st.error("No models were successfully trained. Please check your data and configuration.")
+
+# ============================
+# Main Application
+# ============================
+def main():
+    # Initialize session state
+    if 'file_uploaded' not in st.session_state:
+        st.session_state.file_uploaded = False
+    if 'analyze_clicked' not in st.session_state:
+        st.session_state.analyze_clicked = False
+    
+    # Setup sidebar
+    setup_sidebar()
+    
+    # Main content
+    main_content()
 
 if __name__ == "__main__":
     main()
